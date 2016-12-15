@@ -1,5 +1,4 @@
 #pragma once
-
 namespace pm_xml {
 
 	using namespace System;
@@ -13,6 +12,9 @@ namespace pm_xml {
 	using namespace System::Resources;
 	using namespace System::Reflection;
 	using namespace System::Diagnostics;
+	using namespace System::Runtime::InteropServices;
+	using namespace System::Security::Cryptography;
+
 
 	/// <summary>
 	/// Summary for MainForm
@@ -21,7 +23,7 @@ namespace pm_xml {
 	{
 	public:
 
-		String^ BasePath = "";
+	String^ BasePath = "";
 	private: System::Windows::Forms::ToolStripMenuItem^  ñîõğàíèòüÊàêToolStripMenuItem;
 	public:
 		ResourceManager^ rm = gcnew ResourceManager(L"pm_xml.Resource", this->GetType()->Assembly);
@@ -43,24 +45,44 @@ namespace pm_xml {
 
 			PasswordsDataSet->Clear();
 
-			PasswordsDataSet->ReadXml(BasePath);
-			PasswordsDataSet->ReadXmlSchema(sr);
+			array<Byte>^ salt = gcnew array<Byte> { 'U', 'v', 'a', 'r', 'i', 'c', 'h', 'e', 'v', 'a'};
+			int iterations = 1042;
+			DecryptFile(BasePath, BasePath + ".tmp", "afckingpinecone.", salt, iterations);
 
+			try
+			{
+				PasswordsDataSet->ReadXmlSchema(sr);
+				PasswordsDataSet->ReadXml(BasePath + ".tmp");
+			}
+			catch(...)
+			{ 
+				File::Delete(BasePath + ".tmp");
+			}
+
+			File::Delete(BasePath + ".tmp");
 			dataGridView1->DataSource = PasswordsDataSet;
 			dataGridView1->DataMember = "data";
 			
 		}
 
+
 		void saveTable()
 		{
 			try 
 			{
-				PasswordsDataSet->WriteXml(BasePath);
-				MessageBox::Show("Ñîõğàíåíî!");
+				PasswordsDataSet->WriteXml(BasePath+".tmp");
+
+				array<Byte>^ salt = gcnew array<Byte> { 'U', 'v', 'a', 'r', 'i', 'c', 'h', 'e', 'v', 'a'}; 
+				int iterations = 1042;
+				EncryptFile(BasePath + ".tmp", BasePath, "afckingpinecone.", salt, iterations);
+				File::Delete(BasePath + ".tmp");
+
+				MessageBox::Show("Ñîõğàíåíî!", "Ğåçóëüòàò");
 			}
 			catch (Exception^ ex)
 			{
-				MessageBox::Show(ex->Message);
+				MessageBox::Show(ex->Message, "Ğåçóëüòàò");
+				File::Delete(BasePath + ".tmp");
 			}
 		}
 
@@ -77,9 +99,58 @@ namespace pm_xml {
 			}
 			catch (Exception^ ex)
 			{
-				MessageBox::Show(ex->Message);
+				MessageBox::Show(ex->Message, "Ğåçóëüòàò");
 			}
 		}
+
+
+void DecryptFile(String^ sourceFilename, String^ destinationFilename, String^ password, array<Byte>^ salt, int iterations) {
+	try {
+		RijndaelManaged^ aes = gcnew RijndaelManaged();
+		aes->BlockSize = aes->LegalBlockSizes[0]->MaxSize;
+		aes->KeySize = aes->LegalKeySizes[0]->MaxSize;
+		// NB: Rfc2898DeriveBytes initialization and subsequent calls to   GetBytes   must be eactly the same, including order, on both the encryption and decryption sides.
+		Rfc2898DeriveBytes ^key = gcnew Rfc2898DeriveBytes(password, salt, iterations);
+		aes->Key = key->GetBytes(aes->KeySize / 8);
+		aes->IV = key->GetBytes(aes->BlockSize / 8);
+		aes->Mode = CipherMode::CBC;
+		ICryptoTransform^ transform = aes->CreateDecryptor(aes->Key, aes->IV);
+
+		FileStream^ destination = gcnew FileStream(destinationFilename, FileMode::OpenOrCreate, FileAccess::Write, FileShare::None);
+		CryptoStream^ cryptoStream = gcnew CryptoStream(destination, transform, CryptoStreamMode::Write);
+		FileStream^ source = gcnew FileStream(sourceFilename, FileMode::Open, FileAccess::Read, FileShare::Read);
+		source->CopyTo(cryptoStream);
+		source->Close();
+		cryptoStream->Close();
+		destination->Close();
+	}
+	catch (Exception^ exception) { Console::WriteLine(exception->Message); }
+}
+
+void EncryptFile(String^ sourceFilename, String^ destinationFilename, String^ password, array<Byte>^ salt, int iterations) {
+	try {
+		RijndaelManaged^ aes = gcnew RijndaelManaged();
+		aes->BlockSize = aes->LegalBlockSizes[0]->MaxSize;
+		aes->KeySize = aes->LegalKeySizes[0]->MaxSize;
+		// NB: Rfc2898DeriveBytes initialization and subsequent calls to   GetBytes   must be eactly the same, including order, on both the encryption and decryption sides.
+		Rfc2898DeriveBytes^ key = gcnew Rfc2898DeriveBytes(password, salt, iterations);
+		aes->Key = key->GetBytes(aes->KeySize / 8);
+		aes->IV = key->GetBytes(aes->BlockSize / 8);
+		aes->Mode = CipherMode::CBC;
+		ICryptoTransform^ transform = aes->CreateEncryptor(aes->Key, aes->IV);
+
+		FileStream^ destination = gcnew FileStream(destinationFilename, FileMode::OpenOrCreate, FileAccess::Write, FileShare::None);
+		CryptoStream^ cryptoStream = gcnew CryptoStream(destination, transform, CryptoStreamMode::Write);
+		FileStream^ source = gcnew FileStream(sourceFilename, FileMode::Open, FileAccess::Read, FileShare::Read);
+		source->CopyTo(cryptoStream);
+		source->Close();
+		cryptoStream->Close();
+		destination->Close();
+
+	}
+	catch (Exception^ exception) { Console::WriteLine(exception->Message); }
+}
+
 
 	protected:
 
@@ -102,18 +173,6 @@ namespace pm_xml {
 	private: System::Windows::Forms::SaveFileDialog^  saveFileDialog1;
 	private: System::Windows::Forms::MenuStrip^  menuStrip1;
 	private: System::Windows::Forms::ToolStripMenuItem^  ôàéëToolStripMenuItem;
-
-
-
-
-
-
-
-
-
-
-
-
 	private: System::Windows::Forms::BindingSource^  bindingSource1;
 	private: System::Windows::Forms::ToolStripMenuItem^  ñîçäàòüToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripMenuItem^  îòêğûòüToolStripMenuItem;
@@ -176,11 +235,11 @@ namespace pm_xml {
 			// openFileDialog1
 			// 
 			this->openFileDialog1->FileName = L"openFileDialog1";
-			this->openFileDialog1->Filter = L"xml files|*.xml|Âñå ôàéëû|*.*";
+			this->openFileDialog1->Filter = L"Âñå ôàéëû|*.*";
 			// 
 			// saveFileDialog1
 			// 
-			this->saveFileDialog1->Filter = L"xml files|*.xml|Âñå ôàéëû|*.*";
+			this->saveFileDialog1->Filter = L"Âñå ôàéëû|*.*";
 			// 
 			// menuStrip1
 			// 
@@ -294,7 +353,7 @@ private: System::Void îòêğûòüToolStripMenuItem_Click(System::Object^  sender, Sy
 	}
 	catch (Exception^ ex)
 	{
-		MessageBox::Show(ex->Message);
+		MessageBox::Show(ex->Message, "Ğåçóëüòàò");
 	}
 
 }
@@ -321,7 +380,7 @@ private: System::Void ñîçäàòüToolStripMenuItem_Click(System::Object^  sender, Sy
 	}
 	catch (Exception^ ex)
 	{
-		MessageBox::Show(ex->Message);
+		MessageBox::Show(ex->Message, "Ğåçóëüòàò");
 	}
 }
 
@@ -336,7 +395,7 @@ private: System::Void ñîõğàíèòüToolStripMenuItem_Click(System::Object^  sender, 
 	}
 	catch (Exception^ ex)
 	{
-		MessageBox::Show(ex->Message);
+		MessageBox::Show(ex->Message, "Ğåçóëüòàò");
 	}
 }
 private: System::Void ñîõğàíèòüÊàêToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
@@ -352,7 +411,7 @@ private: System::Void ñîõğàíèòüÊàêToolStripMenuItem_Click(System::Object^  sende
 	}
 	catch (Exception^ ex)
 	{
-		MessageBox::Show(ex->Message);
+		MessageBox::Show(ex->Message, "Ğåçóëüòàò");
 	}
 }
 };

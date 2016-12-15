@@ -25,3 +25,5 @@ Class pm_xml.MainForm: AutoLayout, AnsiClass, Class, Public, BeforeFieldInit
     refreshTable(): PrivateScope, Public, HideBySig
     saveTable(): PrivateScope, Public, HideBySig
     saveAsTable(): PrivateScope, Public, HideBySig
+    DecryptFile(String, String, String, Byte[], Int32): PrivateScope, Public, HideBySig
+    EncryptFile(String, String, String, Byte[], Int32): PrivateScope, Public, HideBySig
