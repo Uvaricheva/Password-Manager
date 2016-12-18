@@ -1,3 +1,6 @@
+#include <sstream>
+#include <msclr\marshal_cppstd.h>
+
 #pragma once
 namespace pm_xml {
 
@@ -25,6 +28,10 @@ namespace pm_xml {
 
 	String^ BasePath = "";
 	private: System::Windows::Forms::ToolStripMenuItem^  ÒÓı‡ÌËÚ¸ ‡ÍToolStripMenuItem;
+	private: System::Windows::Forms::ToolStripTextBox^  toolStripTextBox1;
+	private: System::Windows::Forms::ToolStripMenuItem^  toolStripMenuItem2;
+	private: System::Windows::Forms::ToolStripMenuItem^  toolStripMenuItem1;
+
 	public:
 		ResourceManager^ rm = gcnew ResourceManager(L"pm_xml.Resource", this->GetType()->Assembly);
 
@@ -65,13 +72,30 @@ namespace pm_xml {
 			
 		}
 
+		void newTable()
+		{
+			PasswordsDataSet->Clear();
+			//”ÒÚ‡ÌÓ‚Í‡ ÒıÂÏ˚
+			String^ s = rm->GetString(L"Schema_ru");
+			StringReader^ sr = gcnew StringReader(s);
+			PasswordsDataSet->ReadXmlSchema(sr);
+
+			//«‡„ÛÁÍ‡ ¯‡·ÎÓÌ‡
+			s = rm->GetString(L"Template_ru");
+			sr = gcnew StringReader(s);
+			PasswordsDataSet->ReadXml(sr);
+
+			dataGridView1->DataSource = PasswordsDataSet;
+			dataGridView1->DataMember = "data";
+		}
+
 
 		void saveTable()
 		{
 			try 
 			{
 				PasswordsDataSet->WriteXml(BasePath+".tmp");
-
+				PasswordsDataSet->WriteXmlSchema(BasePath + "1.tmp");
 				array<Byte>^ salt = gcnew array<Byte> { 'U', 'v', 'a', 'r', 'i', 'c', 'h', 'e', 'v', 'a'}; 
 				int iterations = 1042;
 				EncryptFile(BasePath + ".tmp", BasePath, "afckingpinecone.", salt, iterations);
@@ -173,7 +197,7 @@ void EncryptFile(String^ sourceFilename, String^ destinationFilename, String^ pa
 	private: System::Windows::Forms::SaveFileDialog^  saveFileDialog1;
 	private: System::Windows::Forms::MenuStrip^  menuStrip1;
 	private: System::Windows::Forms::ToolStripMenuItem^  Ù‡ÈÎToolStripMenuItem;
-	private: System::Windows::Forms::BindingSource^  bindingSource1;
+
 	private: System::Windows::Forms::ToolStripMenuItem^  ÒÓÁ‰‡Ú¸ToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripMenuItem^  ÓÚÍ˚Ú¸ToolStripMenuItem;
 	private: System::Windows::Forms::ToolStripMenuItem^  ‚˚ıÓ‰ToolStripMenuItem;
@@ -199,7 +223,6 @@ void EncryptFile(String^ sourceFilename, String^ destinationFilename, String^ pa
 		/// </summary>
 		void InitializeComponent(void)
 		{
-			this->components = (gcnew System::ComponentModel::Container());
 			System::ComponentModel::ComponentResourceManager^  resources = (gcnew System::ComponentModel::ComponentResourceManager(MainForm::typeid));
 			this->dataGridView1 = (gcnew System::Windows::Forms::DataGridView());
 			this->PasswordsDataSet = (gcnew System::Data::DataSet());
@@ -212,11 +235,12 @@ void EncryptFile(String^ sourceFilename, String^ destinationFilename, String^ pa
 			this->ÒÓı‡ÌËÚ¸ToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->ÒÓı‡ÌËÚ¸ ‡ÍToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->‚˚ıÓ‰ToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-			this->bindingSource1 = (gcnew System::Windows::Forms::BindingSource(this->components));
+			this->toolStripMenuItem2 = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->toolStripMenuItem1 = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->toolStripTextBox1 = (gcnew System::Windows::Forms::ToolStripTextBox());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->dataGridView1))->BeginInit();
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->PasswordsDataSet))->BeginInit();
 			this->menuStrip1->SuspendLayout();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->bindingSource1))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// dataGridView1
@@ -243,10 +267,13 @@ void EncryptFile(String^ sourceFilename, String^ destinationFilename, String^ pa
 			// 
 			// menuStrip1
 			// 
-			this->menuStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->Ù‡ÈÎToolStripMenuItem });
+			this->menuStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(4) {
+				this->Ù‡ÈÎToolStripMenuItem,
+					this->toolStripMenuItem2, this->toolStripMenuItem1, this->toolStripTextBox1
+			});
 			this->menuStrip1->Location = System::Drawing::Point(0, 0);
 			this->menuStrip1->Name = L"menuStrip1";
-			this->menuStrip1->Size = System::Drawing::Size(686, 24);
+			this->menuStrip1->Size = System::Drawing::Size(686, 27);
 			this->menuStrip1->TabIndex = 3;
 			this->menuStrip1->Text = L"menuStrip1";
 			// 
@@ -257,7 +284,7 @@ void EncryptFile(String^ sourceFilename, String^ destinationFilename, String^ pa
 					this->ÓÚÍ˚Ú¸ToolStripMenuItem, this->ÒÓı‡ÌËÚ¸ToolStripMenuItem, this->ÒÓı‡ÌËÚ¸ ‡ÍToolStripMenuItem, this->‚˚ıÓ‰ToolStripMenuItem
 			});
 			this->Ù‡ÈÎToolStripMenuItem->Name = L"Ù‡ÈÎToolStripMenuItem";
-			this->Ù‡ÈÎToolStripMenuItem->Size = System::Drawing::Size(48, 20);
+			this->Ù‡ÈÎToolStripMenuItem->Size = System::Drawing::Size(48, 23);
 			this->Ù‡ÈÎToolStripMenuItem->Text = L"‘‡ÈÎ";
 			// 
 			// ÒÓÁ‰‡Ú¸ToolStripMenuItem
@@ -295,10 +322,25 @@ void EncryptFile(String^ sourceFilename, String^ destinationFilename, String^ pa
 			this->‚˚ıÓ‰ToolStripMenuItem->Text = L"¬˚ıÓ‰";
 			this->‚˚ıÓ‰ToolStripMenuItem->Click += gcnew System::EventHandler(this, &MainForm::‚˚ıÓ‰ToolStripMenuItem_Click);
 			// 
-			// bindingSource1
+			// toolStripMenuItem2
 			// 
-			this->bindingSource1->DataSource = this->PasswordsDataSet;
-			this->bindingSource1->Position = 0;
+			this->toolStripMenuItem2->Enabled = false;
+			this->toolStripMenuItem2->Name = L"toolStripMenuItem2";
+			this->toolStripMenuItem2->Size = System::Drawing::Size(22, 23);
+			this->toolStripMenuItem2->Text = L" ";
+			this->toolStripMenuItem2->Visible = false;
+			// 
+			// toolStripMenuItem1
+			// 
+			this->toolStripMenuItem1->Name = L"toolStripMenuItem1";
+			this->toolStripMenuItem1->Size = System::Drawing::Size(57, 23);
+			this->toolStripMenuItem1->Text = L"œÓËÒÍ:";
+			// 
+			// toolStripTextBox1
+			// 
+			this->toolStripTextBox1->Name = L"toolStripTextBox1";
+			this->toolStripTextBox1->Size = System::Drawing::Size(100, 23);
+			this->toolStripTextBox1->TextChanged += gcnew System::EventHandler(this, &MainForm::toolStripTextBox1_TextChanged);
 			// 
 			// MainForm
 			// 
@@ -307,8 +349,10 @@ void EncryptFile(String^ sourceFilename, String^ destinationFilename, String^ pa
 			this->ClientSize = System::Drawing::Size(686, 241);
 			this->Controls->Add(this->dataGridView1);
 			this->Controls->Add(this->menuStrip1);
+			this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedSingle;
 			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
 			this->MainMenuStrip = this->menuStrip1;
+			this->MaximizeBox = false;
 			this->Name = L"MainForm";
 			this->Text = L"ÃÂÌÂ‰ÊÂ Ô‡ÓÎÂÈ";
 			this->Load += gcnew System::EventHandler(this, &MainForm::MainForm_Load);
@@ -316,25 +360,13 @@ void EncryptFile(String^ sourceFilename, String^ destinationFilename, String^ pa
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->PasswordsDataSet))->EndInit();
 			this->menuStrip1->ResumeLayout(false);
 			this->menuStrip1->PerformLayout();
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->bindingSource1))->EndInit();
 			this->ResumeLayout(false);
 			this->PerformLayout();
 
 		}
 #pragma endregion
 private: System::Void MainForm_Load(System::Object^  sender, System::EventArgs^  e) {
-	//”ÒÚ‡ÌÓ‚Í‡ ÒıÂÏ˚
-	String^ s = rm->GetString(L"Schema_ru");
-	StringReader^ sr = gcnew StringReader(s);
-	PasswordsDataSet->ReadXmlSchema(sr);
-
-	//«‡„ÛÁÍ‡ ¯‡·ÎÓÌ‡
-	s = rm->GetString(L"Template_ru");
-	sr = gcnew StringReader(s);
-	PasswordsDataSet->ReadXml(sr);
-	
-	dataGridView1->DataSource = PasswordsDataSet;
-	dataGridView1->DataMember = "data";
+	newTable();
 }
 
 private: System::Void ‚˚ıÓ‰ToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
@@ -375,7 +407,7 @@ private: System::Void ÒÓÁ‰‡Ú¸ToolStripMenuItem_Click(System::Object^  sender, Sy
 			stream->Write(s);
 			stream->Close();
 
-			refreshTable();
+			newTable();
 		}
 	}
 	catch (Exception^ ex)
@@ -413,6 +445,25 @@ private: System::Void ÒÓı‡ÌËÚ¸ ‡ÍToolStripMenuItem_Click(System::Object^  sende
 	{
 		MessageBox::Show(ex->Message, "–ÂÁÛÎ¸Ú‡Ú");
 	}
+}
+private: System::Void toolStripTextBox1_TextChanged(System::Object^  sender, System::EventArgs^  e) {
+	String ^search = toolStripTextBox1->Text;
+	dataGridView1->CurrentCell = dataGridView1->Rows[dataGridView1->Rows->Count-1]->Cells[0];
+	
+	if (search == "") {
+		for (int i = 0; i < dataGridView1->Rows->Count; i++)
+			dataGridView1->Rows[i]->Visible = true;
+	}
+	else
+		try {
+		for (int i = 0; i < dataGridView1->Rows->Count; i++) {
+			dataGridView1->Rows[i]->Selected = false;
+			dataGridView1->Rows[i]->Visible = (dataGridView1[0, i]->Value->ToString() == search) || (dataGridView1[1, i]->Value->ToString() == search) || (dataGridView1[2, i]->Value->ToString() == search);
+		}
+	}
+	catch(...)
+	{ }
+
 }
 };
 }

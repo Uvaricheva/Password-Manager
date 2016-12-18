@@ -18,9 +18,6 @@
     <ClCompile Include="MyForm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="aes\aes256.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resource.resx">
@@ -33,9 +30,6 @@
   <ItemGroup>
     <ClInclude Include="MainForm.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="aes\aes256.hpp">
-      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
